@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 type Props = {
   grid: number[][];
   gridDim: { n: number; m: number };
@@ -7,9 +9,12 @@ type Props = {
 const Board = ({ grid, gridDim, onGridUpdate }: Props) => {
   const { m } = gridDim;
   return (
-    <div className="mx-auto w-auto overflow-hidden">
+    <div
+      className="relative mx-auto w-auto overflow-hidden select-none"
+      style={{ WebkitUserSelect: 'none' }}
+    >
       <div
-        className="border border-red-1100"
+        className="border border-blue-1000 select-none"
         style={{
           display: 'grid',
           gridTemplateColumns: `repeat(${m}, 32px)`,
@@ -19,9 +24,9 @@ const Board = ({ grid, gridDim, onGridUpdate }: Props) => {
           rows.map((_, j) => (
             <div
               key={`${i},${j}`}
-              onClick={onGridUpdate.bind(this, i, j)}
+              onClick={() => onGridUpdate(i, j)}
               className={`w-8 h-8 border-gray-300  ${
-                grid[i][j] ? 'animate-boxGrow bg-red-1000' : 'border'
+                grid[i][j] ? 'animate-boxGrow bg-blue-1000' : 'border'
               }`}
             />
           ))

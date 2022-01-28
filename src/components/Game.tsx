@@ -4,6 +4,7 @@ import Controls from './Controls';
 import { calcNeighbors } from '../lib/calcNeighbors';
 import produce from 'immer';
 import { ControlState, ControlAction } from '../types/ControlState';
+import { generateGrid } from '../lib/generateGrid';
 
 type Props = {};
 
@@ -12,7 +13,7 @@ const controlReduer = (state: ControlState, action: ControlAction) => {
     case 'SPEED_INPUT':
       return {
         ...state,
-        speed: action.payload,
+        speed: Math.max(action.payload, 200),
       };
     case 'MAX_GENERATION_INPUT':
       let maxGen = Math.min(1000, action.payload);
@@ -28,7 +29,7 @@ const controlReduer = (state: ControlState, action: ControlAction) => {
   }
 };
 
-const defaultControl = { speed: 600, maxGen: 100 };
+const defaultControl = { speed: 200, maxGen: 100 };
 
 const Game = (props: Props) => {
   // Control states and handlers
@@ -45,9 +46,7 @@ const Game = (props: Props) => {
     return { n, m };
   }, []);
 
-  const [grid, setGrid] = useState<number[][]>(() =>
-    Array.from(Array(n), (_) => Array(m).fill(0))
-  );
+  const [grid, setGrid] = useState<number[][]>(() => generateGrid(n, m));
 
   const handleGridUpdate = (i: number, j: number) => {
     const newGrid = produce(grid, (gridCopy) => {
@@ -71,13 +70,6 @@ const Game = (props: Props) => {
   curGenRef.current = generation;
 
   const simulate = useCallback(() => {
-    if (maxGenRef.current <= curGenRef.current) {
-      setSimulating(false);
-      setGeneration(0);
-      setLastGen(true);
-      return;
-    }
-
     if (!simulatingRef.current) {
       setSimulating(false);
       return;
@@ -105,6 +97,11 @@ const Game = (props: Props) => {
     });
 
     setGeneration((p) => p + 1);
+    if (maxGenRef.current <= curGenRef.current) {
+      setSimulating(false);
+      setLastGen(true);
+      return;
+    }
     setTimeout(simulate, speedRef.current);
   }, [n, m]);
 
@@ -130,9 +127,8 @@ const Game = (props: Props) => {
       });
     });
     setGeneration((p) => p + 1);
-    if (maxGenRef.current <= curGenRef.current) {
+    if (maxGenRef.current <= curGenRef.current + 1) {
       setSimulating(false);
-      setGeneration(0);
       setLastGen(true);
       return;
     }
@@ -151,8 +147,10 @@ const Game = (props: Props) => {
   };
 
   const handleReset = () => {
+    setSimulating(false);
     setLastGen(false);
     setGeneration(0);
+    setGrid(generateGrid(n, m));
   };
 
   return (
@@ -165,6 +163,7 @@ const Game = (props: Props) => {
         onControlChange={handleControlChange}
         onReset={handleReset}
         isLastGen={lastGen}
+        generation={generation}
       />
       <Board grid={grid} gridDim={{ n, m }} onGridUpdate={handleGridUpdate} />
     </div>
