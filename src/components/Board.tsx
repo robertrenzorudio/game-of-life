@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 type Props = {
   grid: number[][];
   gridDim: { n: number; m: number };
